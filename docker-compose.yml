@@ -1,0 +1,23 @@
+# © 2026 Mohamed Marwen Maalawi — base de données locale pour le module CRM.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: take_home_crm_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crm
+      POSTGRES_PASSWORD: crm
+      POSTGRES_DB: take_home_crm_db
+    ports:
+      # Host port 5544 (not 5432) to avoid clashing with any other local Postgres.
+      - "5544:5432"
+    volumes:
+      - take_home_crm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm -d take_home_crm_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  take_home_crm_pgdata:

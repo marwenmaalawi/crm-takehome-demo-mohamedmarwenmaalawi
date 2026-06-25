@@ -1,0 +1,37 @@
+{
+  "name": "crm-module-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Module CRM — suivi commercial d'une équipe interne",
+  "creator": "Mohamed Marwen Maalawi",
+  "authors": [
+    "Mohamed Marwen Maalawi"
+  ],
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "contracts:build": "npm -w @crm/contracts run build",
+    "backend:dev": "npm -w backend run start:dev",
+    "frontend:dev": "npm -w frontend run dev",
+    "db:migrate": "npm -w backend run prisma:migrate",
+    "db:seed": "npm -w backend run prisma:seed",
+    "setup": "node scripts/copy-env.mjs && npm install && npm run contracts:build && npm run db:up && npm -w backend run prisma:generate && npm run db:migrate && npm run db:seed",
+    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "build": "npm run contracts:build && npm -w backend run build && npm -w frontend run build",
+    "lint": "npm -w backend run lint && npm -w frontend run lint",
+    "test": "npm -w backend run test && npm -w frontend run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prettier": "^3.3.3"
+  }
+}
