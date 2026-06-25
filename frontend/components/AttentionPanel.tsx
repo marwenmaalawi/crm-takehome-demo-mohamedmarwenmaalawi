@@ -6,14 +6,19 @@ import { formatCurrency, formatDate } from '@/lib/format';
 type Tone = 'danger' | 'warning' | 'info';
 
 const headStyles: Record<Tone, string> = {
-  danger: 'text-danger-text',
+  danger:  'text-danger-text',
   warning: 'text-warning-text',
-  info: 'text-info-text',
+  info:    'text-info-text',
 };
 const dotStyles: Record<Tone, string> = {
-  danger: 'bg-danger-base',
+  danger:  'bg-danger-base',
   warning: 'bg-warning-base',
-  info: 'bg-info-base',
+  info:    'bg-info-base',
+};
+const emptyBgStyles: Record<Tone, string> = {
+  danger:  '',
+  warning: '',
+  info:    '',
 };
 
 function Column({
@@ -31,6 +36,7 @@ function Column({
 }) {
   return (
     <div className="card flex flex-col p-5">
+      {/* Header */}
       <div className="mb-3 flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${dotStyles[tone]}`} aria-hidden />
         <h3 className={`text-sm font-semibold ${headStyles[tone]}`}>{title}</h3>
@@ -38,20 +44,41 @@ function Column({
           {items.length}
         </span>
       </div>
+
+      {/* Items */}
       {items.length === 0 ? (
-        <p className="py-4 text-center text-xs text-slate-400">{t(locale, 'attention.empty')}</p>
+        <p className="flex flex-1 items-center justify-center py-4 text-center text-xs text-success-text">
+          <span aria-hidden className="mr-1">✓</span>
+          {t(locale, 'attention.empty')}
+        </p>
       ) : (
         <ul className="divide-y divide-slate-100">
           {items.map((o) => (
             <li key={o.id}>
-              <Link href={`/opportunities/${o.id}`} className="block py-2 hover:opacity-80">
+              <Link
+                href={`/opportunities/${o.id}`}
+                className="group block py-2.5 transition hover:opacity-80"
+              >
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-sm font-medium text-slate-700">{o.title}</span>
-                  <span className="shrink-0 text-sm tabular-nums text-slate-500">
+                  <span className="truncate text-sm font-medium text-slate-700 group-hover:text-brand-700">
+                    {o.title}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-sm text-slate-500">
                     {formatCurrency(o.amount, locale)}
                   </span>
                 </div>
-                <div className="text-xs text-slate-400">{meta(o)}</div>
+                {/* Client name + delay/stall reason on second line */}
+                <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
+                  {o.clientName ? (
+                    <span className="truncate">{o.clientName}</span>
+                  ) : null}
+                  {o.clientName && meta(o) ? (
+                    <span aria-hidden>·</span>
+                  ) : null}
+                  {meta(o) ? (
+                    <span className={headStyles[tone]}>{meta(o)}</span>
+                  ) : null}
+                </div>
               </Link>
             </li>
           ))}
@@ -83,7 +110,11 @@ export function AttentionPanel({
           title={t(locale, 'attention.stalled')}
           tone="warning"
           items={attention.stalled}
-          meta={(o) => o.problem.reasons.find((r) => r.includes('Stagn') || r.includes('Stall')) ?? o.problem.reasons[0] ?? ''}
+          meta={(o) =>
+            o.problem.reasons.find((r) => r.includes('Stagn') || r.includes('Stall')) ??
+            o.problem.reasons[0] ??
+            ''
+          }
           locale={locale}
         />
         <Column

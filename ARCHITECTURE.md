@@ -211,11 +211,31 @@ opportunités y sont rattachées). Validation par les schémas Zod partagés (PA
 Dictionnaires FR/EN dans `lib/i18n.ts` ; locale résolue côté serveur via cookie
 (`lib/server-locale.ts`), bascule côté client. **Français par défaut.**
 
-### Design
+### Design system
 Tailwind, jetons définis dans `tailwind.config.ts` : canvas neutre, un accent de
 marque, et des couleurs sémantiques (rouge = en retard, ambre = stagnante,
 vert = gagnée). Les opportunités à problème reçoivent un **liseré + une teinte** et
 des badges avec **raison** au survol.
+
+Primitives CSS documentées dans `globals.css` (`@layer components`) :
+- `.form-shell` — wrapper responsive des formulaires (full-width mobile, max-w-3xl sm+).
+- `.form-section` / `.form-section-title` — sections avec séparateur.
+- `.form-actions` — barre d'actions sticky sur mobile, inline sur sm+.
+- `.row-clickable` — rows de tableau clicables avec hover affordance explicite.
+- `.filter-bar` / `.filter-row` — barre de filtres.
+
+### Responsive strategy (cibles : 1366px et 1080p)
+
+| Breakpoint | Comportement |
+|---|---|
+| `< sm` (< 640 px) | Card-list (pas de table), formulaires 1 col, sidebar ☰ |
+| `sm–lg` | Formulaires 2 col, table compacte |
+| `lg` | Sidebar fixe verticale |
+| `xl` (1280+) | Colonnes Next step / Aging / Owner visibles |
+| `3xl` (1920+) | Paddings plus larges, densité accrue |
+
+Les tableaux utilisent deux modes de rendu distincts : un `<table>` pour sm+, une
+card-list pour mobile. Pas de scroll horizontal sur petits écrans.
 
 ---
 

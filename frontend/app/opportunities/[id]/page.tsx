@@ -43,6 +43,10 @@ export default async function OpportunityDetailPage({ params }: { params: { id: 
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={opportunity.status} locale={locale} />
               <ProblemBadges problem={opportunity.problem} locale={locale} showHealthy />
+              {/* Owner chip — visible at a glance without scrolling to the sidebar */}
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs text-slate-600">
+                {opportunity.ownerName}
+              </span>
               <span className="ml-auto text-xs text-slate-400">
                 {opportunity.daysInStage} {t(locale, 'opp.daysInStage')}
               </span>

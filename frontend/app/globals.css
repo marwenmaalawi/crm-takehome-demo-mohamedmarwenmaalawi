@@ -6,8 +6,20 @@
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+/* Native form elements inherit the design system font */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
 }
 
 @layer components {
@@ -34,5 +46,50 @@ body {
   }
   .field-error {
     @apply mt-1 text-xs text-danger-text;
+  }
+
+  /* ─── Form layout ─────────────────────────────────────────────────────── */
+  /*
+   * .form-shell  – the outer card that wraps a create/edit form.
+   *   On mobile: full-width, no max-width.
+   *   On sm+:    max-w-3xl, comfortable width on 1366 laptops.
+   */
+  .form-shell {
+    @apply card w-full space-y-6 p-5 sm:max-w-3xl sm:p-8;
+  }
+
+  /*
+   * .form-section – a logical group of fields inside a form.
+   *   Adds a visible divider above.
+   */
+  .form-section {
+    @apply border-t border-slate-100 pt-5;
+  }
+  .form-section-title {
+    @apply mb-4 text-xs font-semibold uppercase tracking-widest text-slate-400;
+  }
+
+  /*
+   * .form-actions – sticky submit bar on mobile, inline on sm+.
+   */
+  .form-actions {
+    @apply sticky bottom-0 -mx-5 flex items-center gap-3 border-t border-slate-100 bg-white px-5 py-4 sm:static sm:mx-0 sm:border-none sm:bg-transparent sm:px-0 sm:py-0;
+  }
+
+  /* ─── Table row affordance ────────────────────────────────────────────── */
+  /*
+   * Apply on <tbody> <tr> rows that are navigable via a stretched link.
+   * .group is still required on the <tr> for group-hover to work.
+   */
+  .row-clickable {
+    @apply relative cursor-pointer transition-colors hover:bg-brand-50/50;
+  }
+
+  /* ─── Filter bar ──────────────────────────────────────────────────────── */
+  .filter-bar {
+    @apply card mb-4 p-4;
+  }
+  .filter-row {
+    @apply flex flex-wrap items-end gap-3;
   }
 }

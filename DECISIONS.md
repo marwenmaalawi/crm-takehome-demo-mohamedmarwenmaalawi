@@ -227,3 +227,59 @@ On ne teste pas les getters : on teste **la logique métier qui se relit**.
 ---
 
 *Document rédigé par Mohamed Marwen Maalawi — © 2026.*
+
+---
+
+## 8. Itération 3 — Pipeline board, responsive UX, polish pass
+
+### 8.1 Pipeline board — vue Kanban en lecture seule
+
+**Décision :** page `/pipeline` affichant les opportunités **ouvertes** (`OPEN`) groupées par étape,
+avec totaux de valeur par colonne. La vue est **en lecture seule** : pas de drag-and-drop.
+
+- **Alternatives :**
+  - DnD kanban (P2, délibérément reporté) : utile, mais introduit une complexité d'état
+    non justifiable en 48 h. Le changement d'étape via le formulaire d'édition est suffisant.
+  - Afficher WON/LOST dans le kanban : écarté — mélanger les statuts ouverts et clos noie
+    le pipeline actif.
+- **Trade-off :** le kanban read-only donne la vue « où en est    mon pipeline » sans la dette technique du DnD..
+
+### 8.2 Seuil de stagnation — 14 jours
+
+**Seuil retenu : 14 jours d'inactivité** (absence d'activité journalisée ; à défaut, absence de
+changement d'étape).
+
+- **Alternatives envisagées :**
+  - 30 jours (valeur « intuitive ») : trop permissif pour un CRM actif — une affaire peut mourir
+    en silence en moins d'un mois. 30 jours revient à valider l'inaction.
+  - Seuils par étape (ex. 7 j en NEGOTIATION, 21 j en NEW) : plus réaliste métier, documenté
+    en évolution future.
+- **Décision : 14 jours**, constante nommée (`STALL_THRESHOLD_DAYS`) localisée dans le domaine,
+  ajustable sans réécriture. Aligné dans les tests unitaires, le dashboard, les labels i18n et
+  le présent document.
+
+### 8.3 Stratégie responsive — cibles prioritaires
+
+**Cibles primaires : 1366×768 (laptop standard) et 1920×1080 (desktop)**. Ces deux résolutions
+couvrent l'essentiel des machines de travail sur lesquelles le projet sera évalué.
+
+| Breakpoint | Comportement attendu |
+|---|---|
+| `< sm` (< 640 px) | Card-list au lieu des tableaux, formulaires 1 colonne, sidebar ☰ |
+| `sm–lg` (640–1024 px) | Formulaires 2 colonnes, tableaux compacts |
+| `lg` (1024 px+) | Sidebar fixe verticale visible |
+| `xl` (1280 px+) | Colonnes masquées révélées (Next step, Aging, Owner) |
+| `3xl` (1920 px+) | Densité augmentée, paddings plus larges |
+
+- **Anti-pattern évité :** padding excessif sur grand écran (look « site marketing »). L'app
+  doit rester un outil de travail CRM, pas une landing page.
+- **Formulaires :** `.form-shell` (full-width mobile, max-w-3xl sm+) avec des sections séparées
+  par des diviseurs, et une barre d'actions sticky en bas sur mobile.
+- **Filtres :** collapsibles sur mobile (toggle « Filtres ▼ ») avec compteur de filtres actifs,
+  inline sur desktop.
+- **Tableaux :** deux modes — table desktop (sm+, stretched-link + hover affordance) et card-list
+  mobile. Pas de scroll horizontal sur petits écrans.
+
+---
+
+*Document rédigé par Mohamed Marwen Maalawi — © 2026.*

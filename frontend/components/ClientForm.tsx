@@ -68,7 +68,7 @@ export function ClientForm({ locale, clientId, defaults }: ClientFormProps) {
 
   const type = watch('type');
 
-  /** Map a list of {path, message} issues back onto the matching form fields. */
+  /** Map server field errors back onto the matching form fields. */
   const applyFieldErrors = (issues: { path: string; message: string }[]) => {
     issues.forEach(({ path, message }) => {
       if (path in EMPTY) setError(path as keyof ClientFormValues, { message });
@@ -79,8 +79,6 @@ export function ClientForm({ locale, clientId, defaults }: ClientFormProps) {
     setFormError(null);
 
     try {
-      // Validate with the SAME schema the API uses, then submit (branches kept
-      // separate so the create/update DTO types narrow correctly).
       let saved;
       if (isEdit) {
         const payload = {
@@ -144,104 +142,172 @@ export function ClientForm({ locale, clientId, defaults }: ClientFormProps) {
   });
 
   return (
-    <form onSubmit={onSubmit} className="card max-w-2xl space-y-5 p-6">
+    <form onSubmit={onSubmit} className="form-shell">
+      {/* Global form error */}
       {formError ? (
-        <div className="rounded-lg border border-danger-base/30 bg-danger-soft px-4 py-2 text-sm text-danger-text">
+        <div
+          role="alert"
+          className="rounded-lg border border-danger-base/30 bg-danger-soft px-4 py-3 text-sm text-danger-text"
+        >
           {formError}
         </div>
       ) : null}
 
+      {/* ── Section 1: Type ── */}
       <div>
-        <label className="label" htmlFor="type">{t(locale, 'clientForm.type')}</label>
-        <select id="type" className="input" disabled={isEdit} {...register('type')}>
-          {Object.values(ClientType).map((c) => (
-            <option key={c} value={c}>{clientTypeLabels[locale][c]}</option>
-          ))}
-        </select>
+        <p className="form-section-title">
+          {isEdit ? t(locale, 'clientForm.editTitle') : t(locale, 'clientForm.newTitle')}
+        </p>
+        <div>
+          <label className="label" htmlFor="client-type">
+            {t(locale, 'clientForm.type')} <span className="text-danger-text">*</span>
+          </label>
+          <select id="client-type" className="input" disabled={isEdit} {...register('type')}>
+            {Object.values(ClientType).map((c) => (
+              <option key={c} value={c}>
+                {clientTypeLabels[locale][c]}
+              </option>
+            ))}
+          </select>
+          {isEdit ? (
+            <p className="mt-1 text-xs text-slate-400">Le type de client ne peut pas être modifié après création.</p>
+          ) : null}
+        </div>
       </div>
 
+      {/* ── Section 2: Company-specific fields ── */}
       {type === ClientType.COMPANY ? (
-        <>
-          <div>
-            <label className="label" htmlFor="legalName">{t(locale, 'clientForm.legalName')}</label>
-            <input id="legalName" className="input" {...register('legalName')} />
-            {errors.legalName ? <p className="field-error">{errors.legalName.message}</p> : null}
+        <div className="form-section">
+          <p className="form-section-title">{t(locale, 'clientDetail.info')}</p>
+          <div className="space-y-4">
+            {/* Legal name */}
+            <div>
+              <label className="label" htmlFor="client-legalName">
+                {t(locale, 'clientForm.legalName')} <span className="text-danger-text">*</span>
+              </label>
+              <input id="client-legalName" className="input" autoFocus={!isEdit} {...register('legalName')} />
+              {errors.legalName ? <p className="field-error">{errors.legalName.message}</p> : null}
+            </div>
+
+            {/* SIREN + Industry + Headcount — 3-col on sm+ */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label className="label" htmlFor="client-siren">
+                  {t(locale, 'clientForm.siren')}
+                </label>
+                <input id="client-siren" className="input" {...register('siren')} />
+                {errors.siren ? <p className="field-error">{errors.siren.message}</p> : null}
+              </div>
+              <div>
+                <label className="label" htmlFor="client-industry">
+                  {t(locale, 'clientForm.industry')}
+                </label>
+                <input id="client-industry" className="input" {...register('industry')} />
+              </div>
+              <div>
+                <label className="label" htmlFor="client-headcount">
+                  {t(locale, 'clientForm.headcount')}
+                </label>
+                <select id="client-headcount" className="input" {...register('headcount')}>
+                  <option value="">—</option>
+                  {headcountBandSchema.options.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Primary contact */}
+            <fieldset className="rounded-lg border border-slate-200 p-4">
+              <legend className="px-1 text-xs font-medium text-slate-500">
+                {t(locale, 'clientDetail.contact')}
+              </legend>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="label" htmlFor="client-contactName">
+                    {t(locale, 'clientForm.firstName')} / {t(locale, 'clientForm.lastName')}
+                  </label>
+                  <input id="client-contactName" className="input" {...register('contactName')} />
+                </div>
+                <div>
+                  <label className="label" htmlFor="client-contactRole">
+                    {t(locale, 'clientForm.owner')}
+                  </label>
+                  <input id="client-contactRole" className="input" {...register('contactRole')} />
+                </div>
+                <div>
+                  <label className="label" htmlFor="client-contactEmail">
+                    {t(locale, 'clientForm.email')}
+                  </label>
+                  <input
+                    id="client-contactEmail"
+                    type="email"
+                    className="input"
+                    {...register('contactEmail')}
+                  />
+                  {errors.contactEmail ? <p className="field-error">{errors.contactEmail.message}</p> : null}
+                </div>
+              </div>
+            </fieldset>
           </div>
-          <div className="grid gap-5 sm:grid-cols-3">
-            <div>
-              <label className="label" htmlFor="siren">{t(locale, 'clientForm.siren')}</label>
-              <input id="siren" className="input" {...register('siren')} />
-              {errors.siren ? <p className="field-error">{errors.siren.message}</p> : null}
-            </div>
-            <div>
-              <label className="label" htmlFor="industry">{t(locale, 'clientForm.industry')}</label>
-              <input id="industry" className="input" {...register('industry')} />
-            </div>
-            <div>
-              <label className="label" htmlFor="headcount">{t(locale, 'clientForm.headcount')}</label>
-              <select id="headcount" className="input" {...register('headcount')}>
-                <option value="">—</option>
-                {headcountBandSchema.options.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <fieldset className="rounded-lg border border-slate-200 p-4">
-            <legend className="px-1 text-xs font-medium text-slate-500">
-              {t(locale, 'clientDetail.contact')}
-            </legend>
-            <div className="grid gap-5 sm:grid-cols-3">
-              <div>
-                <label className="label" htmlFor="contactName">{t(locale, 'clientForm.firstName')} / {t(locale, 'clientForm.lastName')}</label>
-                <input id="contactName" className="input" {...register('contactName')} />
-              </div>
-              <div>
-                <label className="label" htmlFor="contactRole">{t(locale, 'clientForm.owner')}</label>
-                <input id="contactRole" className="input" {...register('contactRole')} />
-              </div>
-              <div>
-                <label className="label" htmlFor="contactEmail">{t(locale, 'clientForm.email')}</label>
-                <input id="contactEmail" type="email" className="input" {...register('contactEmail')} />
-                {errors.contactEmail ? <p className="field-error">{errors.contactEmail.message}</p> : null}
-              </div>
-            </div>
-          </fieldset>
-        </>
+        </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label className="label" htmlFor="firstName">{t(locale, 'clientForm.firstName')}</label>
-            <input id="firstName" className="input" {...register('firstName')} />
-            {errors.firstName ? <p className="field-error">{errors.firstName.message}</p> : null}
-          </div>
-          <div>
-            <label className="label" htmlFor="lastName">{t(locale, 'clientForm.lastName')}</label>
-            <input id="lastName" className="input" {...register('lastName')} />
-            {errors.lastName ? <p className="field-error">{errors.lastName.message}</p> : null}
+        /* ── Section 2 (Individual): first name + last name ── */
+        <div className="form-section">
+          <p className="form-section-title">{t(locale, 'clientDetail.info')}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="client-firstName">
+                {t(locale, 'clientForm.firstName')} <span className="text-danger-text">*</span>
+              </label>
+              <input id="client-firstName" className="input" autoFocus={!isEdit} {...register('firstName')} />
+              {errors.firstName ? <p className="field-error">{errors.firstName.message}</p> : null}
+            </div>
+            <div>
+              <label className="label" htmlFor="client-lastName">
+                {t(locale, 'clientForm.lastName')} <span className="text-danger-text">*</span>
+              </label>
+              <input id="client-lastName" className="input" {...register('lastName')} />
+              {errors.lastName ? <p className="field-error">{errors.lastName.message}</p> : null}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label className="label" htmlFor="email">{t(locale, 'clientForm.email')}</label>
-          <input id="email" type="email" className="input" {...register('email')} />
-          {errors.email ? <p className="field-error">{errors.email.message}</p> : null}
-        </div>
-        <div>
-          <label className="label" htmlFor="phone">{t(locale, 'clientForm.phone')}</label>
-          <input id="phone" className="input" {...register('phone')} />
+      {/* ── Section 3: Contact + Responsable ── */}
+      <div className="form-section">
+        <p className="form-section-title">Contact &amp; Responsable</p>
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="client-email">
+                {t(locale, 'clientForm.email')}
+              </label>
+              <input id="client-email" type="email" className="input" {...register('email')} />
+              {errors.email ? <p className="field-error">{errors.email.message}</p> : null}
+            </div>
+            <div>
+              <label className="label" htmlFor="client-phone">
+                {t(locale, 'clientForm.phone')}
+              </label>
+              <input id="client-phone" type="tel" className="input" {...register('phone')} />
+            </div>
+          </div>
+
+          <div>
+            <label className="label" htmlFor="client-ownerName">
+              {t(locale, 'clientForm.owner')} <span className="text-danger-text">*</span>
+            </label>
+            <input id="client-ownerName" className="input" {...register('ownerName')} />
+            {errors.ownerName ? <p className="field-error">{errors.ownerName.message}</p> : null}
+          </div>
         </div>
       </div>
 
-      <div>
-        <label className="label" htmlFor="ownerName">{t(locale, 'clientForm.owner')}</label>
-        <input id="ownerName" className="input" {...register('ownerName')} />
-        {errors.ownerName ? <p className="field-error">{errors.ownerName.message}</p> : null}
-      </div>
-
-      <div className="flex items-center gap-3 pt-2">
+      {/* ── Actions: sticky on mobile, inline on sm+ ── */}
+      <div className="form-actions">
         <button type="submit" className="btn-primary" disabled={isSubmitting}>
           {isSubmitting ? t(locale, 'form.saving') : t(locale, 'action.save')}
         </button>

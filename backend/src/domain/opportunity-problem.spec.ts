@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { OpportunityStatus, ProblemFlag } from '@crm/contracts';
 import { assessProblem } from './opportunity-problem';
 

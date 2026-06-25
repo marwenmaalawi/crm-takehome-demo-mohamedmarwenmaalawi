@@ -62,7 +62,7 @@ Si `npm run setup` est lancé avant que PostgreSQL soit prêt, relancer simpleme
 ## 🧱 Structure du dépôt (monorepo npm workspaces)
 
 ```
-crm-module-demo-marwen/
+crm-takehome-demo-mohamedmarwenmaalawi/
 ├─ packages/contracts/   # @crm/contracts — schémas Zod + types, partagés back ↔ front
 ├─ backend/              # API NestJS
 │  ├─ prisma/            # schema.prisma, migrations versionnées, seed.ts
